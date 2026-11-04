@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Práctica: pórtico escalonado con D articulado (GH = 2)</title>
+<style>
+  :root{
+    --bg:#f7f5f0; --card:#ffffff; --ink:#1d1d1b; --muted:#6b6a65; --line:#d9d6cc;
+    --beam:#2b2b28; --load:#d23c2f; --mp:#1f6fc5; --m1:#8a4fc7; --m2:#2f9a57; --fin:#e08a00;
+    --amp:rgba(31,111,197,.18); --am1:rgba(138,79,199,.18); --am2:rgba(47,154,87,.18); --afin:rgba(224,138,0,.2);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#161614; --card:#1f1f1c; --ink:#ecebe6; --muted:#a3a29b; --line:#3a3934;
+      --beam:#e2e0d8; --load:#ff6b5e; --mp:#5aa6ff; --m1:#c08bff; --m2:#5fd18b; --fin:#ffb547;
+      --amp:rgba(90,166,255,.2); --am1:rgba(192,139,255,.2); --am2:rgba(95,209,139,.2); --afin:rgba(255,181,71,.22); }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 16px 48px}
+  h1{font-size:1.35rem;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  svg{width:100%;max-width:540px;height:auto;display:block;margin:6px auto}
+  ol,ul{margin:6px 0 10px;padding-left:22px}
+  details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"Ver ▾";font-size:.82rem;font-weight:500;color:var(--muted);white-space:nowrap}
+  details[open] summary::after{content:"Ocultar ▴"}
+  details[open] summary{border-bottom:1px solid var(--line)}
+  .body{padding:12px 16px}
+  .body p{margin:0 0 10px}
+  .eq{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:1.08rem;background:var(--bg);border-radius:10px;padding:10px 12px;margin:8px 0 12px;text-align:center;line-height:2.1}
+  .f{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.2}
+  .f>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+  .mp{color:var(--mp);font-weight:600} .m1{color:var(--m1);font-weight:600} .m2{color:var(--m2);font-weight:600} .fin{color:var(--fin);font-weight:600} .ld{color:var(--load);font-weight:600}
+  .tip{font-size:.9rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin:6px 0 10px}
+  td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+  .pos{color:var(--m2);font-weight:700} .neg{color:var(--load);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Práctica: pórtico escalonado (versión de calentamiento)</h1>
+  <p class="sub">Tiene la misma forma que el de tu cuaderno, pero D es una articulación (2 redundantes en vez de 3) y las cargas son puntuales. Intenta cada paso en papel antes de abrirlo.</p>
+
+  <div class="card">
+    <p><b>Enunciado.</b> Obtener el diagrama de momentos flectores, debidamente acotado, del pórtico mostrado mediante el método de las fuerzas. A es un <b>empotramiento</b> y D una <b>articulación</b>. Todas las barras tienen EI constante. Desprecia las deformaciones axiales y por cortante.</p>
+    <ul>
+      <li>Carga horizontal <span class="ld">H = 10 kN</span> hacia la derecha en el nudo B.</li>
+      <li>Carga vertical <span class="ld">P = 8 kN</span> hacia abajo en el centro de la viga BC.</li>
+    </ul>
+    <svg id="fig" viewBox="0 0 540 470"></svg>
+  </div>
+
+  <details>
+    <summary><span>1. Grado de hiperestaticidad</span></summary>
+    <div class="body">
+      <table>
+        <tr><td>Empotramiento A</td><td>H<sub>A</sub>, V<sub>A</sub>, M<sub>A</sub></td><td><b>3</b></td></tr>
+        <tr><td>Articulación D</td><td>H<sub>D</sub>, V<sub>D</sub></td><td><b>2</b></td></tr>
+      </table>
+      <div class="eq">GH = 5 − 3 = <b>2</b> &nbsp;(pórtico abierto, sin rótulas internas)</div>
+      <p class="tip">En tu cuaderno D está empotrado (3 reacciones), por eso allá GH = 3.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>2. Sistema base y variables</span></summary>
+    <div class="body">
+      <p>Liberamos la articulación en D. Queda un pórtico empotrado solo en A, con D libre (isostático). Las reacciones de D pasan a ser las incógnitas:</p>
+      <div class="eq"><span class="m1">X<sub>1</sub> = H<sub>D</sub></span> (supuesta →) &nbsp;&nbsp; <span class="m2">X<sub>2</sub> = V<sub>D</sub></span> (supuesta ↑)</div>
+      <svg id="base" viewBox="0 0 540 470"></svg>
+      <p>Compatibilidad: en la estructura real la articulación no deja que D se mueva, ni en horizontal ni en vertical.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>3. Ecuaciones canónicas</span></summary>
+    <div class="body">
+      <div class="eq">
+        δ<sub>11</sub>X<sub>1</sub> + δ<sub>12</sub>X<sub>2</sub> + Δ<sub>1P</sub> = 0 &nbsp;← desplazamiento horizontal en D<br>
+        δ<sub>21</sub>X<sub>1</sub> + δ<sub>22</sub>X<sub>2</sub> + Δ<sub>2P</sub> = 0 &nbsp;← desplazamiento vertical en D</div>
+      <p>Primer subíndice: dónde mides (1 = horizontal en D, 2 = vertical en D). Segundo: qué lo causa.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>4. Diagrama M<sub>P</sub> (cargas reales)</span></summary>
+    <div class="body">
+      <p>Corta desde D (el extremo libre) y mira el pedazo entre el corte y D:</p>
+      <table>
+        <tr><th>Tramo</th><th>Qué fuerzas hay</th><th>Momento</th></tr>
+        <tr><td>DC</td><td>ninguna</td><td>0</td></tr>
+        <tr><td>CB, de C al centro</td><td>ninguna</td><td>0</td></tr>
+        <tr><td>CB, del centro a B</td><td>P, brazo horizontal de 0 a 2 m</td><td>0 → 8·2 = <b>16</b> (tracción arriba)</td></tr>
+        <tr><td>BA</td><td>P con brazo 2 m (constante: <b>16</b>) + H con brazo vertical de 0 a 4 m (0 → <b>40</b>)</td><td>16 → 16 + 40 = <b>56</b> (tracción izquierda)</td></tr>
+      </table>
+      <svg id="dmp" viewBox="0 0 540 470"></svg>
+      <p class="tip">En AB las dos cargas suman porque las dos traccionan la cara izquierda: P "tira" la viga hacia abajo y H empuja la columna hacia la derecha.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>5. Diagrama M<sub>1</sub> (1 horizontal → en D)</span></summary>
+    <div class="body">
+      <p>Fuerza horizontal: el brazo es la <b>distancia vertical</b> a la altura de D (6 m).</p>
+      <table>
+        <tr><td>DC</td><td>bajas de D a C: brazo 0 → 2</td><td>triángulo 0 → <b>2</b> (izquierda)</td></tr>
+        <tr><td>CB</td><td>todo a 2 m bajo D</td><td>rectángulo <b>2</b> (arriba)</td></tr>
+        <tr><td>BA</td><td>bajas de B a A: brazo 2 → 6</td><td>trapecio 2 → <b>6</b> (izquierda)</td></tr>
+      </table>
+      <svg id="dm1" viewBox="0 0 540 470"></svg>
+      <p class="tip">Es exactamente la lógica del diagrama que señalaste en tu cuaderno (allá era 3 → 8).</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>6. Diagrama M<sub>2</sub> (1 vertical ↑ en D)</span></summary>
+    <div class="body">
+      <p>Fuerza vertical: el brazo es la <b>distancia horizontal</b> a D.</p>
+      <table>
+        <tr><td>DC</td><td>misma vertical que D: brazo 0</td><td><b>0</b></td></tr>
+        <tr><td>CB</td><td>te alejas en horizontal: 0 → 4</td><td>triángulo 0 → <b>4</b> (abajo)</td></tr>
+        <tr><td>BA</td><td>toda la columna está a 4 m de D</td><td>rectángulo <b>4</b> (derecha)</td></tr>
+      </table>
+      <svg id="dm2" viewBox="0 0 540 470"></svg>
+      <p class="tip">Fuerza hacia arriba: la viga se curva ⌣ y tracciona abajo. En el nudo B esa tracción pasa a la cara derecha (interior) de la columna.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>7. Coeficientes (Vereshchagin por tramos)</span></summary>
+    <div class="body">
+      <p><b>Signo:</b> mismo lado da +, lados opuestos dan −. Todos los valores van divididos entre EI.</p>
+      <table>
+        <tr><th>Coef.</th><th>DC</th><th>CB</th><th>BA</th><th>Total</th></tr>
+        <tr><td>δ<sub>11</sub></td><td>½·2·2·(⅔·2) = 8/3</td><td>(2·4)·2 = 16</td><td>trapecio² = 208/3</td><td><b>88</b></td></tr>
+        <tr><td>δ<sub>22</sub></td><td>0</td><td>½·4·4·(⅔·4) = 64/3</td><td>(4·4)·4 = 64</td><td><b>256/3 ≈ 85.33</b></td></tr>
+        <tr><td>δ<sub>12</sub></td><td>0</td><td>(½·4·4)·2 = 16</td><td>(4·4)·4 = 64</td><td class="neg">−80 (opuestos)</td></tr>
+        <tr><td>Δ<sub>1P</sub></td><td>0</td><td>(½·2·16)·2 = 32</td><td>trap. 16→56 × trap. 2→6 = 1888/3</td><td class="pos">+1984/3 ≈ 661.33 (mismo lado)</td></tr>
+        <tr><td>Δ<sub>2P</sub></td><td>0</td><td>(½·2·16)·(10/3) = 160/3</td><td>(½(16+56)·4)·4 = 576</td><td class="neg">−1888/3 ≈ −629.33 (opuestos)</td></tr>
+      </table>
+      <p><b>Trapecio × trapecio</b> (en BA), con la fórmula ${'L/6'}(2a₁b₁ + 2a₂b₂ + a₁b₂ + a₂b₁):</p>
+      <div class="eq" id="trap"></div>
+      <p class="tip">En Δ<sub>2P</sub> por la viga: el centroide del triángulo de M<sub>P</sub> está a ⅔ m de B, o sea a 10/3 m de C. Ahí M<sub>2</sub> vale 10/3.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>8. Resolver X<sub>1</sub> y X<sub>2</sub></span></summary>
+    <div class="body">
+      <div class="eq">88X<sub>1</sub> − 80X<sub>2</sub> + ${F}=0<br>−80X<sub>1</sub> + ${F}X<sub>2</sub> − ${F} = 0</div>
+      <p>Multiplicando por 3:</p>
+      <div class="eq">264X<sub>1</sub> − 240X<sub>2</sub> = −1984<br>−240X<sub>1</sub> + 256X<sub>2</sub> = 1888</div>
+      <div class="eq"><span class="m1">X<sub>1</sub> = −214/39 ≈ −5.49 kN</span> &nbsp;&nbsp; <span class="m2">X<sub>2</sub> = 29/13 ≈ 2.23 kN</span></div>
+      <p><b>X<sub>1</sub> salió negativo:</b> la reacción horizontal en D va al revés de lo supuesto, o sea <b>5.49 kN hacia la izquierda ←</b>. Tiene sentido: H empuja todo hacia la derecha y D lo frena.</p>
+      <p><b>X<sub>2</sub> positivo:</b> 2.23 kN hacia arriba ↑.</p>
+      <p class="tip">Ojo: en el paso siguiente se usa X<sub>1</sub> <b>con su signo</b> (−5.49). No le cambies el signo "a mano".</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>9. Diagrama final M = M<sub>P</sub> + X<sub>1</sub>M<sub>1</sub> + X<sub>2</sub>M<sub>2</sub></span></summary>
+    <div class="body">
+      <p>Convención para sumar: tomamos como <b>negativo</b> el lado "exterior" (izquierda en las columnas, arriba en la viga) y como <b>positivo</b> el interior.</p>
+      <table>
+        <tr><th>Punto</th><th>M<sub>P</sub></th><th>X<sub>1</sub>·M<sub>1</sub></th><th>X<sub>2</sub>·M<sub>2</sub></th><th>M final</th></tr>
+        <tr><td>C</td><td>0</td><td>(−5.49)(−2) = +10.97</td><td>0</td><td><b>10.97</b> (interior)</td></tr>
+        <tr><td>Centro de BC</td><td>0</td><td>+10.97</td><td>(2.23)(+2) = +4.46</td><td><b>15.44</b> (abajo)</td></tr>
+        <tr><td>B</td><td>−16</td><td>+10.97</td><td>(2.23)(+4) = +8.92</td><td><b>3.90</b> (interior)</td></tr>
+        <tr><td>A</td><td>−56</td><td>(−5.49)(−6) = +32.92</td><td>+8.92</td><td><b>−14.15</b> (izquierda)</td></tr>
+      </table>
+      <svg id="dfin" viewBox="0 0 540 470"></svg>
+      <p>En la columna AB el momento cambia de signo: M = 0 a <b>0.86 m debajo de B</b>. Por encima tracciona adentro y por debajo, afuera.</p>
+      <p class="tip">Chequeo: ΣFx: 10 − 5.49 − H<sub>A</sub> = 0, entonces H<sub>A</sub> = 4.51 kN ←. ΣFy: V<sub>A</sub> = 8 − 2.23 = 5.77 kN ↑.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const F=(a,b)=>`<span class="f"><span>${a}</span><span>${b}</span></span>`;
+const S=50; const A=[170,420], B=[170,220], C=[370,220], D=[370,120];
+// normales "exteriores": DC izquierda, CB arriba, BA izquierda
+const MEM={DC:[D,C,[-1,0]], CB:[C,B,[0,-1]], BA:[B,A,[-1,0]]};
+
+function el(svg,tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;}
+function text(svg,x,y,s,a={}){const e=el(svg,'text',Object.assign({x,y,'font-size':14,fill:css('--ink'),'font-family':'system-ui,sans-serif'},a));e.textContent=s;return e;}
+function arrow(svg,x1,y1,x2,y2,color,label,lx,ly){
+  el(svg,'line',{x1,y1,x2,y2,stroke:color,'stroke-width':3});
+  const a=Math.atan2(y2-y1,x2-x1), h=10;
+  el(svg,'path',{d:`M${x2-h*Math.cos(a-0.5)},${y2-h*Math.sin(a-0.5)} L${x2},${y2} L${x2-h*Math.cos(a+0.5)},${y2-h*Math.sin(a+0.5)}`,fill:'none',stroke:color,'stroke-width':3});
+  if(label) text(svg,lx,ly,label,{fill:color,'font-weight':700,'font-size':15});
+}
+function frame(svg,{pin=true,op=1}={}){
+  const g=el(svg,'g',{opacity:op});
+  el(g,'polyline',{points:`${A} ${B} ${C} ${D}`,fill:'none',stroke:css('--beam'),'stroke-width':6,'stroke-linejoin':'round','stroke-linecap':'round'});
+  el(g,'line',{x1:A[0]-28,y1:A[1],x2:A[0]+28,y2:A[1],stroke:css('--beam'),'stroke-width':3});
+  for(let i=-26;i<=20;i+=9) el(g,'line',{x1:A[0]+i,y1:A[1],x2:A[0]+i-8,y2:A[1]+11,stroke:css('--muted'),'stroke-width':1.4});
+  if(pin){
+    el(g,'polygon',{points:`${D[0]},${D[1]-2} ${D[0]-14},${D[1]-24} ${D[0]+14},${D[1]-24}`,fill:'none',stroke:css('--beam'),'stroke-width':2.5});
+    el(g,'line',{x1:D[0]-22,y1:D[1]-24,x2:D[0]+22,y2:D[1]-24,stroke:css('--beam'),'stroke-width':2.5});
+    for(let i=-20;i<=14;i+=8) el(g,'line',{x1:D[0]+i,y1:D[1]-24,x2:D[0]+i+7,y2:D[1]-33,stroke:css('--muted'),'stroke-width':1.3});
+  }
+  text(g,A[0]-26,A[1]+5,'A',{'font-weight':700,'font-size':16});
+  text(g,B[0]-26,B[1]+5,'B',{'font-weight':700,'font-size':16});
+  text(g,C[0]+10,C[1]+18,'C',{'font-weight':700,'font-size':16});
+  text(g,D[0]+14,D[1]+5,'D',{'font-weight':700,'font-size':16});
+}
+function dims(svg){
+  const m=css('--muted');
+  const v=(x,y1,y2,l)=>{el(svg,'line',{x1:x,y1:y1,x2:x,y2:y2,stroke:m,'stroke-width':1.3});[y1,y2].forEach(y=>el(svg,'line',{x1:x-5,y1:y,x2:x+5,y2:y,stroke:m,'stroke-width':1.3}));text(svg,x+7,(y1+y2)/2+5,l,{fill:m,'font-size':13,'font-weight':700});};
+  v(470,D[1],C[1],'2 m'); v(470,C[1],A[1],'4 m');
+  el(svg,'line',{x1:B[0],y1:A[1]+38,x2:C[0],y2:A[1]+38,stroke:m,'stroke-width':1.3});
+  [B[0],C[0],(B[0]+C[0])/2].forEach(x=>el(svg,'line',{x1:x,y1:A[1]+32,x2:x,y2:A[1]+44,stroke:m,'stroke-width':1.3}));
+  text(svg,B[0]+38,A[1]+32,'2 m',{fill:m,'font-size':13,'font-weight':700}); text(svg,B[0]+138,A[1]+32,'2 m',{fill:m,'font-size':13,'font-weight':700});
+}
+function loads(svg,op=1){
+  const g=el(svg,'g',{opacity:op});
+  arrow(g,B[0]-55,B[1],B[0]-4,B[1],css('--load'),'H = 10 kN',B[0]-105,B[1]-10);
+  const xm=(B[0]+C[0])/2; arrow(g,xm,B[1]-55,xm,B[1]-4,css('--load'),'P = 8 kN',xm+8,B[1]-40);
+}
+// pts: lista de [t, M] a lo largo de la barra (convención: negativo = exterior)
+function memDiag(svg,name,pts,k,color,fill,labels=[]){
+  const [p0,p1,n]=MEM[name];
+  const at=t=>[p0[0]+(p1[0]-p0[0])*t, p0[1]+(p1[1]-p0[1])*t];
+  const poly=[at(0)];
+  pts.forEach(([t,m])=>{const q=at(t); poly.push([q[0]-m*k*n[0], q[1]-m*k*n[1]]);});
+  poly.push(at(1));
+  el(svg,'polygon',{points:poly.map(q=>q.join(',')).join(' '),fill:fill,stroke:color,'stroke-width':2.5,'stroke-linejoin':'round'});
+  labels.forEach(([t,m,txt,dx=0,dy=0])=>{const q=at(t); const x=q[0]-m*k*n[0], y=q[1]-m*k*n[1];
+    const ox = n[0]!==0 ? (-Math.sign(m)*n[0]*14) : 0, oy = n[1]!==0 ? (-Math.sign(m)*n[1]*16) : 0;
+    text(svg,x+ox-8+dx,y+oy+5+dy,txt,{fill:color,'font-weight':700,'font-size':14});});
+}
+
+// Figura
+const fig=document.getElementById('fig'); frame(fig); loads(fig); dims(fig);
+text(fig,250,330,'EI constante',{fill:css('--muted')});
+
+// Base
+const base=document.getElementById('base'); frame(base,{pin:false}); loads(base,.5);
+arrow(base,D[0]+4,D[1],D[0]+55,D[1],css('--m1'),'X₁',D[0]+40,D[1]-10);
+arrow(base,D[0],D[1]-4,D[0],D[1]-55,css('--m2'),'X₂',D[0]+8,D[1]-40);
+text(base,250,330,'D libre',{fill:css('--muted')});
+
+// MP
+const k1=2.0;
+const dmp=document.getElementById('dmp'); frame(dmp,{pin:false,op:.45}); loads(dmp,.6);
+memDiag(dmp,'CB',[[0,0],[.5,0],[1,-16]],k1,css('--mp'),css('--amp'),[[1,-16,'16',6,0]]);
+memDiag(dmp,'BA',[[0,-16],[1,-56]],k1,css('--mp'),css('--amp'),[[0,-16,'16',-30,18],[1,-56,'56',-6,14]]);
+text(dmp,300,330,'MP (kN·m)',{fill:css('--mp'),'font-weight':700,'font-size':16});
+text(dmp,300,350,'DC = 0',{fill:css('--muted'),'font-size':13});
+
+// M1
+const k2=12;
+const dm1=document.getElementById('dm1'); frame(dm1,{pin:false,op:.45});
+arrow(dm1,D[0]+4,D[1],D[0]+50,D[1],css('--m1'),'1',D[0]+40,D[1]-10);
+memDiag(dm1,'DC',[[0,0],[1,-2]],k2,css('--m1'),css('--am1'),[[1,-2,'2',-4,-14]]);
+memDiag(dm1,'CB',[[0,-2],[1,-2]],k2,css('--m1'),css('--am1'),[[.5,-2,'2']]);
+memDiag(dm1,'BA',[[0,-2],[1,-6]],k2,css('--m1'),css('--am1'),[[0,-2,'2',-6,0],[1,-6,'6',-6,14]]);
+text(dm1,300,330,'M1 (m)',{fill:css('--m1'),'font-weight':700,'font-size':16});
+
+// M2
+const dm2=document.getElementById('dm2'); frame(dm2,{pin:false,op:.45});
+arrow(dm2,D[0],D[1]-4,D[0],D[1]-50,css('--m2'),'1',D[0]+8,D[1]-36);
+memDiag(dm2,'CB',[[0,0],[1,4]],k2,css('--m2'),css('--am2'),[[1,4,'4',10,0]]);
+memDiag(dm2,'BA',[[0,4],[1,4]],k2,css('--m2'),css('--am2'),[[.5,4,'4',4,0]]);
+text(dm2,300,360,'M2 (m)',{fill:css('--m2'),'font-weight':700,'font-size':16});
+text(dm2,300,380,'DC = 0',{fill:css('--muted'),'font-size':13});
+
+// Final
+const X1=-214/39, X2=29/13;
+const zf=19/22/4; // fracción de BA donde M=0
+const dfin=document.getElementById('dfin'); frame(dfin,{op:.45}); loads(dfin,.5);
+const kf=3;
+memDiag(dfin,'DC',[[0,0],[1,428/39]],kf,css('--fin'),css('--afin'),[[1,428/39,'10.97',4,-10]]);
+memDiag(dfin,'CB',[[0,428/39],[.5,602/39],[1,152/39]],kf,css('--fin'),css('--afin'),[[.5,602/39,'15.44']]);
+memDiag(dfin,'BA',[[0,152/39],[zf,0],[1,-184/13]],kf,css('--fin'),css('--afin'),[[0,152/39,'3.90',22,16],[1,-184/13,'14.15',-14,14]]);
+{ const y=B[1]+(A[1]-B[1])*zf; el(dfin,'circle',{cx:B[0],cy:y,r:4,fill:css('--ink')}); text(dfin,B[0]-160,y+5,'M = 0 (0.86 m bajo B)',{fill:css('--muted'),'font-size':12}); }
+text(dfin,300,350,'M final (kN·m)',{fill:css('--fin'),'font-weight':700,'font-size':16});
+
+// ecuaciones
+document.getElementById('trap').innerHTML=`${F('4','6')}(2·16·2 + 2·56·6 + 16·6 + 56·2) = ${F('4','6')}(944) = ${F('1888','3')}`;
+document.querySelectorAll('.eq').forEach(e=>{ if(e.innerHTML.includes('${F}')){
+  e.innerHTML=`88X<sub>1</sub> − 80X<sub>2</sub> + ${F('1984','3')} = 0<br>−80X<sub>1</sub> + ${F('256','3')}X<sub>2</sub> − ${F('1888','3')} = 0`; }});
+document.querySelectorAll('p').forEach(p=>{ p.innerHTML=p.innerHTML.replace("${'L/6'}",F('L','6')); });
+</script>
+</body>
+</html>
